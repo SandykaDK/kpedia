@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  CONTRIBUTOR
+  MODERATOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
+  OTHER
+  UNKNOWN
+}
+
+enum IdolStatus {
+  ACTIVE
+  INACTIVE
+  MILITARY
+  HIATUS
+  UNKNOWN
+}
+
+enum GroupType {
+  MAIN_GROUP
+  SUB_UNIT
+  PROJECT_GROUP
+  BAND
+  OTHER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  FORMER
+  HIATUS
+}
+
+enum AlbumType {
+  SINGLE
+  EP
+  MINI_ALBUM
+  FULL_ALBUM
+  REPACKAGE
+  OST
+  COMPILATION
+  LIVE
+  OTHER
+}
+
+enum CreditRole {
+  VOCAL
+  RAP
+  COMPOSER
+  LYRICIST
+  PRODUCER
+  ARRANGER
+  FEATURED_ARTIST
+  OTHER
+}
+
+enum RevisionEntityType {
+  IDOL
+  GROUP
+  AGENCY
+  ALBUM
+  SONG
+}
+
+enum RevisionAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum EditTargetType {
+  IDOL
+  GROUP
+  AGENCY
+  ALBUM
+  SONG
+}
+
+enum EditOperation {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum EditRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum TimelineEntityType {
+  IDOL
+  GROUP
+  ALBUM
+  SONG
+}
+
+enum TimelineCategory {
+  DEBUT
+  COMEBACK
+  AWARD
+  CONCERT
+  MILITARY
+  OTHER
+}
+
+enum MediaProvider {
+  YOUTUBE
+  SPOTIFY
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String?
+  email        String     @unique
+  passwordHash String?
+  role         UserRole   @default(USER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  editRequests WikiEditRequest[] @relation("EditRequester")
+  reviewedEditRequests WikiEditRequest[] @relation("EditReviewer")
+  changedRevisions RevisionHistory[] @relation("RevisionAuthor")
+}
+
+model WikiEditRequest {
+  id          String            @id @default(cuid())
+  targetType  EditTargetType
+  targetId    String
+  operation   EditOperation
+  payload     Json
+  reason      String            @db.Text
+  status      EditRequestStatus @default(PENDING)
+  requesterId String
+  reviewerId  String?
+  reviewNote  String?           @db.Text
+  createdAt   DateTime          @default(now())
+  reviewedAt  DateTime?
+
+  requester User  @relation("EditRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  reviewer  User? @relation("EditReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([requesterId, createdAt])
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model Agency {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  koreanName  String?
+  websiteUrl  String?
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  idols  Idol[]
+  groups Group[]
+}
+
+model Group {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  name          String
+  koreanName    String?
+  type          GroupType  @default(MAIN_GROUP)
+  generation    Int?
+  debutDate     DateTime?
+  disbandDate   DateTime?
+  isActive      Boolean    @default(true)
+  agencyId      String?
+  profileUrl    String?
+  profileImageUrl String?
+  parentGroupId String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  agency       Agency?              @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  parentGroup  Group?               @relation("GroupSubUnits", fields: [parentGroupId], references: [id], onDelete: SetNull)
+  subUnits     Group[]              @relation("GroupSubUnits")
+  memberships  IdolGroupMembership[]
+  albums       Album[]
+}
+
+model Idol {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  stageName   String
+  legalName   String?
+  koreanName  String?
+  gender      Gender     @default(UNKNOWN)
+  birthDate   DateTime?
+  status      IdolStatus @default(ACTIVE)
+  debutDate   DateTime?
+  agencyId    String?
+  profileUrl  String?
+  profileImageUrl String?
+  biography   String?    @db.Text
+  birthPlace  String?
+  nationality String?
+  generation  Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  agency       Agency?              @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  memberships  IdolGroupMembership[]
+  albums       Album[]
+  credits      Credit[]
+}
+
+model RevisionHistory {
+  id          String             @id @default(cuid())
+  entityType  RevisionEntityType
+  entityId    String?
+  revisionNo  Int
+  action      RevisionAction
+  snapshot    Json
+  previousSnapshot Json?
+  changeNote  String?
+  changedById String?
+  createdAt   DateTime           @default(now())
+
+  changedBy User? @relation("RevisionAuthor", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@unique([entityType, entityId, revisionNo])
+  @@index([entityType, entityId, createdAt])
+}
+
+model IdolGroupMembership {
+  id       String           @id @default(cuid())
+  idolId   String
+  groupId  String
+  position String?
+  status   MembershipStatus @default(ACTIVE)
+  joinedAt DateTime?
+  leftAt   DateTime?
+  isLeader Boolean          @default(false)
+
+  idol  Idol  @relation(fields: [idolId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([idolId, groupId])
+  @@index([groupId, status])
+}
+
+model Album {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  type        AlbumType
+  releaseDate DateTime?
+  groupId     String?
+  idolId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  group Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  idol  Idol?   @relation(fields: [idolId], references: [id], onDelete: SetNull)
+  songs Song[]
+}
+
+model Song {
+  id           String   @id @default(cuid())
+  albumId      String?
+  title        String
+  trackNumber  Int?
+  isTitleTrack Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  album   Album?   @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  credits Credit[]
+}
+
+model Credit {
+  id     String     @id @default(cuid())
+  songId String
+  idolId String?
+  role   CreditRole
+
+  song Song  @relation(fields: [songId], references: [id], onDelete: Cascade)
+  idol Idol? @relation(fields: [idolId], references: [id], onDelete: SetNull)
+
+  @@index([songId, role])
+}
+
+model TimelineEvent {
+  id          String             @id @default(cuid())
+  entityType  TimelineEntityType
+  entityId    String
+  category    TimelineCategory   @default(OTHER)
+  title       String
+  description String?            @db.Text
+  eventDate   DateTime
+  sourceUrl   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([entityType, entityId, eventDate])
+  @@index([category, eventDate])
+}
+
+model MediaEmbed {
+  id           String        @id @default(cuid())
+  entityType   TimelineEntityType
+  entityId     String
+  provider     MediaProvider
+  externalId   String
+  url          String
+  title        String?
+  thumbnailUrl String?
+  createdAt    DateTime      @default(now())
+
+  @@index([entityType, entityId, provider])
+  @@unique([provider, externalId, entityType, entityId])
+}

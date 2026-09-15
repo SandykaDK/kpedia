@@ -1,0 +1,6 @@
+import { notFound } from "next/navigation";
+import { IdolForm } from "@/components/admin/idol-form";
+import { formatDateForInput } from "@/lib/utils/date";
+import { getAdminAgencies } from "@/lib/queries/admin-queries";
+import { prisma } from "@/lib/prisma";
+export default async function EditIdolPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; const [idol, agencies] = await Promise.all([prisma.idol.findUnique({ where: { id } }), getAdminAgencies()]); if (!idol) notFound(); return <main className="p-6 text-zinc-100 sm:p-10"><h1 className="text-3xl font-semibold">Edit {idol.stageName}</h1><div className="mt-8"><IdolForm agencies={agencies.map(({ id: agencyId, name }) => ({ id: agencyId, name }))} initial={{ id: idol.id, slug: idol.slug, stageName: idol.stageName, legalName: idol.legalName, koreanName: idol.koreanName, gender: idol.gender, status: idol.status, birthDate: formatDateForInput(idol.birthDate), debutDate: formatDateForInput(idol.debutDate), agencyId: idol.agencyId, profileUrl: idol.profileUrl, profileImageUrl: idol.profileImageUrl, biography: idol.biography, birthPlace: idol.birthPlace, nationality: idol.nationality, generation: idol.generation }} /></div></main>; }
