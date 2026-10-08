@@ -1,15 +1,34 @@
 import Link from "next/link";
+import { AdminFilterBar } from "@/components/admin/admin-filter-bar";
+import { DataTablePagination } from "@/components/admin/data-table-pagination";
 import { getAdminGroups } from "@/lib/queries/admin-queries";
 import { Badge } from "@/components/ui/badge";
 import { GroupRowActions } from "@/components/admin/group-row-actions";
 
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function positiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export default async function AdminGroupsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    page?: string | string[];
+    limit?: string | string[];
+  }>;
 }) {
-  const { q = "" } = await searchParams;
-  const groups = await getAdminGroups(q);
+  const params = await searchParams;
+  const q = firstParam(params.q) ?? "";
+  const page = positiveInteger(firstParam(params.page), 1);
+  const limitValue = positiveInteger(firstParam(params.limit), 10);
+  const limit = [10, 20, 50].includes(limitValue) ? limitValue : 10;
+  const groups = await getAdminGroups({ q, page, limit });
   return (
     <main className="p-6 text-zinc-100 sm:p-10">
       <div className="flex items-end justify-between">
@@ -24,17 +43,7 @@ export default async function AdminGroupsPage({
           + New group
         </Link>
       </div>
-      <form className="mt-8 flex gap-2" method="get">
-        <input
-          className="h-10 rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm"
-          defaultValue={q}
-          name="q"
-          placeholder="Search group..."
-        />
-        <button className="rounded-lg border border-zinc-700 px-4 text-sm" type="submit">
-          Search
-        </button>
-      </form>
+      <AdminFilterBar searchLabel="Search groups" searchPlaceholder="Search group..." />
       <div className="mt-5 overflow-auto rounded-xl border border-zinc-800 bg-zinc-900">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-800 text-xs uppercase text-zinc-500">
@@ -48,7 +57,7 @@ export default async function AdminGroupsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {groups.map((group) => (
+            {groups.data.map((group) => (
               <tr key={group.id}>
                 <td className="p-4 font-medium">
                   {group.name}
@@ -69,7 +78,14 @@ export default async function AdminGroupsPage({
             ))}
           </tbody>
         </table>
+        {!groups.data.length ? <p className="p-10 text-center text-zinc-500">No groups found.</p> : null}
       </div>
+      <DataTablePagination
+        limit={groups.limit}
+        page={groups.page}
+        totalCount={groups.totalCount}
+        totalPages={groups.totalPages}
+      />
     </main>
   );
 }

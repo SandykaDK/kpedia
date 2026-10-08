@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "react-toastify";
 import { createAlbum } from "@/actions/discography-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ export function AlbumForm({
   idols: { id: string; stageName: string }[];
 }) {
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState("");
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -21,10 +21,12 @@ export function AlbumForm({
         title: data.get("title"),
         type: data.get("type"),
         releaseDate: data.get("releaseDate") || null,
+        coverImageUrl: data.get("coverImageUrl") || null,
         groupId: data.get("groupId") || null,
         idolId: data.get("idolId") || null,
       });
-      setMessage(result.success ? "Album tersimpan." : result.error);
+      if (result.success) toast.success("Album berhasil disimpan.");
+      else toast.error(result.error || "Gagal menyimpan album.");
     });
   }
   return (
@@ -55,6 +57,10 @@ export function AlbumForm({
       <label className="text-sm text-zinc-400">
         Release date
         <Input className="mt-2" name="releaseDate" type="date" />
+      </label>
+      <label className="text-sm text-zinc-400 sm:col-span-2">
+        URL cover album
+        <Input className="mt-2" name="coverImageUrl" placeholder="https://..." type="url" />
       </label>
       <label className="text-sm text-zinc-400">
         Group
@@ -88,7 +94,6 @@ export function AlbumForm({
         <Button disabled={pending} type="submit">
           {pending ? "Menyimpan..." : "Simpan album"}
         </Button>
-        <span className="text-sm text-zinc-500">{message}</span>
       </div>
     </form>
   );

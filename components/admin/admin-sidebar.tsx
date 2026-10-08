@@ -4,7 +4,7 @@ import {
   Disc3,
   Film,
   Group,
-  HeartPulse,
+  Globe2,
   Home,
   ListTree,
   UserRound,
@@ -22,11 +22,12 @@ const sections = [
   ["Timeline", "/admin/timeline", ListTree],
   ["Media Embeds", "/admin/media", Film],
   ["Users", "/admin/users", Users],
+  ["Lihat KPedia", "/", Globe2],
 ] as const;
 
 export function AdminSidebar() {
   return (
-    <aside className="w-full shrink-0 border-b border-zinc-800 bg-zinc-950 text-zinc-100 lg:min-h-screen lg:w-64 lg:border-b-0 lg:border-r">
+    <aside className="w-full shrink-0 border-b border-zinc-800 bg-zinc-950 text-zinc-100 lg:h-full lg:w-64 lg:overflow-y-auto lg:border-b-0 lg:border-r">
       <div className="flex items-center justify-between px-5 py-5 lg:block">
         <Link className="text-xl font-bold" href="/admin">
           K<span className="text-rose-400">Pedia</span>

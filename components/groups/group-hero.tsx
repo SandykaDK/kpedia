@@ -1,6 +1,7 @@
 import type { getGroupBySlug } from "@/lib/queries/group-queries";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+
 import { Badge } from "@/components/ui/badge";
 
 type Group = NonNullable<Awaited<ReturnType<typeof getGroupBySlug>>>;
@@ -22,54 +23,61 @@ function formatDate(date: Date | null) {
 }
 
 export function GroupHero({ group }: { group: Group }) {
-  const initials = group.name.slice(0, 2).toUpperCase();
+  const backgroundImage = group.bannerImageUrl ?? group.profileImageUrl;
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl shadow-rose-950/10 sm:p-8">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-orange-300 to-amber-200" />
-      <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-        <Avatar className="size-32 rounded-2xl sm:size-40">
-          {group.profileImageUrl ? (
-            <AvatarImage src={group.profileImageUrl} alt={group.name} />
-          ) : null}
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant={group.isActive ? "success" : "muted"}>
-              {group.isActive ? "Aktif" : "Tidak aktif"}
+    <section className="relative mb-8 h-[360px] w-full overflow-hidden rounded-3xl bg-zinc-900 sm:h-[460px]">
+      {backgroundImage ? (
+        <Image
+          alt=""
+          className="object-cover object-center"
+          fill
+          priority
+          sizes="(max-width: 640px) 100vw, 1200px"
+          src={backgroundImage}
+          unoptimized
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-rose-950 via-zinc-900 to-zinc-950" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10">
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Badge variant={group.isActive ? "success" : "muted"}>
+            {group.isActive ? "Aktif" : "Tidak aktif"}
+          </Badge>
+          <Badge className="border-white/20 bg-black/30 text-white" variant="outline">
+            {typeLabels[group.type]}
+          </Badge>
+          {group.generation ? (
+            <Badge className="border-white/20 bg-black/30 text-white" variant="outline">
+              Generasi {group.generation}
             </Badge>
-            <Badge variant="outline">{typeLabels[group.type]}</Badge>
-            {group.generation ? <Badge variant="outline">Generasi {group.generation}</Badge> : null}
-          </div>
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              {group.name}
-            </h1>
-            <p className="mt-1 text-xl text-zinc-400">
-              {group.koreanName ?? "Nama Korea belum tersedia"}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-400">
+          ) : null}
+        </div>
+        <h1 className="text-5xl font-black tracking-tight text-white drop-shadow-md sm:text-7xl">
+          {group.name}
+        </h1>
+        {group.koreanName ? (
+          <p className="mt-2 text-2xl font-medium text-white/90">{group.koreanName}</p>
+        ) : null}
+        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80">
+          <span>
+            Debut:{" "}
+            <strong className="font-semibold text-white">{formatDate(group.debutDate)}</strong>
+          </span>
+          <span>
+            Agensi:{" "}
+            <strong className="font-semibold text-white">
+              {group.agency?.name ?? "Independen"}
+            </strong>
+          </span>
+          {group.disbandDate ? (
             <span>
-              Debut:{" "}
-              <strong className="font-medium text-zinc-200">{formatDate(group.debutDate)}</strong>
+              Disband:{" "}
+              <strong className="font-semibold text-white">{formatDate(group.disbandDate)}</strong>
             </span>
-            {group.disbandDate ? (
-              <span>
-                Disband:{" "}
-                <strong className="font-medium text-zinc-200">
-                  {formatDate(group.disbandDate)}
-                </strong>
-              </span>
-            ) : null}
-            <span>
-              Agensi:{" "}
-              <strong className="font-medium text-zinc-200">
-                {group.agency?.name ?? "Independen"}
-              </strong>
-            </span>
-          </div>
+          ) : null}
         </div>
       </div>
     </section>

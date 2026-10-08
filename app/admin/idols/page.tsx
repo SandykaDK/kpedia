@@ -1,16 +1,46 @@
 import Link from "next/link";
 
+import { AdminFilterBar } from "@/components/admin/admin-filter-bar";
+import { DataTablePagination } from "@/components/admin/data-table-pagination";
 import { getAdminIdols } from "@/lib/queries/admin-queries";
+import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { IdolRowActions } from "@/components/admin/idol-row-actions";
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function positiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 export default async function AdminIdolsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    agencyId?: string | string[];
+    groupId?: string | string[];
+    status?: string | string[];
+    page?: string | string[];
+    limit?: string | string[];
+  }>;
 }) {
-  const { q = "" } = await searchParams;
-  const idols = await getAdminIdols(q);
+  const params = await searchParams;
+  const q = firstParam(params.q) ?? "";
+  const agencyId = firstParam(params.agencyId) ?? "";
+  const groupId = firstParam(params.groupId) ?? "";
+  const status = firstParam(params.status) ?? "";
+  const page = positiveInteger(firstParam(params.page), 1);
+  const limitValue = positiveInteger(firstParam(params.limit), 10);
+  const limit = [10, 20, 50].includes(limitValue) ? limitValue : 10;
+  const [idols, agencies, groups] = await Promise.all([
+    getAdminIdols({ q, agencyId, groupId, status, page, limit }),
+    prisma.agency.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.group.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+  ]);
 
   return (
     <main className="p-6 text-zinc-100 sm:p-10">
@@ -26,17 +56,33 @@ export default async function AdminIdolsPage({
           + New idol
         </Link>
       </div>
-      <form className="mt-8 flex gap-2" method="get">
-        <input
-          className="h-10 rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm"
-          defaultValue={q}
-          name="q"
-          placeholder="Search idol..."
-        />
-        <button className="rounded-lg border border-zinc-700 px-4 text-sm" type="submit">
-          Search
-        </button>
-      </form>
+      <AdminFilterBar
+        filters={[
+          {
+            key: "agencyId",
+            label: "Agency",
+            placeholder: "All agencies",
+            options: agencies.map((agency) => ({ value: agency.id, label: agency.name })),
+          },
+          {
+            key: "groupId",
+            label: "Group",
+            placeholder: "All groups",
+            options: groups.map((group) => ({ value: group.id, label: group.name })),
+          },
+          {
+            key: "status",
+            label: "Status",
+            placeholder: "All statuses",
+            options: ["ACTIVE", "INACTIVE", "MILITARY", "HIATUS"].map((value) => ({
+              value,
+              label: value,
+            })),
+          },
+        ]}
+        searchLabel="Search idols"
+        searchPlaceholder="Search name or stage name..."
+      />
       <div className="mt-5 overflow-auto rounded-xl border border-zinc-800 bg-zinc-900">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-800 text-xs uppercase text-zinc-500">
@@ -49,7 +95,7 @@ export default async function AdminIdolsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {idols.map((idol) => (
+            {idols.data.map((idol) => (
               <tr key={idol.id}>
                 <td className="p-4">
                   <p className="font-medium">{idol.stageName}</p>
@@ -71,8 +117,16 @@ export default async function AdminIdolsPage({
             ))}
           </tbody>
         </table>
-        {!idols.length ? <p className="p-10 text-center text-zinc-500">No idols found.</p> : null}
+        {!idols.data.length ? (
+          <p className="p-10 text-center text-zinc-500">No idols found.</p>
+        ) : null}
       </div>
+      <DataTablePagination
+        limit={idols.limit}
+        page={idols.page}
+        totalCount={idols.totalCount}
+        totalPages={idols.totalPages}
+      />
     </main>
   );
 }

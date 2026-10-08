@@ -1,10 +1,14 @@
 import { GroupForm } from "@/components/admin/group-form";
-import { getAdminAgencies, getAdminGroups, getAdminIdols } from "@/lib/queries/admin-queries";
+import {
+  getAdminAgencies,
+  getAdminGroupOptions,
+  getAdminIdolOptions,
+} from "@/lib/queries/admin-queries";
 export default async function NewGroupPage() {
   const [agencies, groups, idols] = await Promise.all([
     getAdminAgencies(),
-    getAdminGroups(),
-    getAdminIdols(),
+    getAdminGroupOptions(),
+    getAdminIdolOptions(),
   ]);
   return (
     <main className="p-6 text-zinc-100 sm:p-10">

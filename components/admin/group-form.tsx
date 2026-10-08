@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "react-toastify";
 import { createGroup, setGroupMembership, updateGroup } from "@/actions/group-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +16,16 @@ type Member = {
   status: "ACTIVE" | "FORMER" | "HIATUS";
   isLeader: boolean;
 };
+const groupFormSchema = createGroupSchema.extend({
+  members: z.array(
+    z.object({
+      idolId: z.string(),
+      position: z.string().optional(),
+      status: z.enum(["ACTIVE", "FORMER", "HIATUS"]),
+      isLeader: z.boolean(),
+    }),
+  ),
+});
 type Values = CreateGroupInput & { members: Member[] };
 
 export function GroupForm({
@@ -28,11 +40,10 @@ export function GroupForm({
   initial?: Partial<CreateGroupInput> & { id?: string };
 }) {
   const form = useForm<Values>({
-    resolver: zodResolver(createGroupSchema) as never,
+    resolver: zodResolver(groupFormSchema) as never,
     defaultValues: { type: "MAIN_GROUP", isActive: true, members: [], ...initial },
   });
   const members = useFieldArray({ control: form.control, name: "members" });
-  const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const submit = form.handleSubmit((values) =>
     startTransition(async () => {
@@ -40,12 +51,20 @@ export function GroupForm({
         ? await updateGroup(initial.id, values)
         : await createGroup(values);
       if (!result.success) {
-        setMessage(result.error);
+        toast.error(result.error || "Gagal menyimpan grup.");
         return;
       }
-      for (const member of values.members)
-        await setGroupMembership({ ...member, groupId: result.data.id });
-      setMessage("Group dan anggota berhasil disimpan.");
+      for (const member of values.members) {
+        const membershipResult = await setGroupMembership({
+          ...member,
+          groupId: result.data.id,
+        });
+        if (!membershipResult.success) {
+          toast.error(membershipResult.error || "Grup tersimpan, tetapi anggota gagal disimpan.");
+          return;
+        }
+      }
+      toast.success("Grup dan anggota berhasil disimpan.");
       if (!initial?.id) form.reset({ type: "MAIN_GROUP", isActive: true, members: [] });
     }),
   );
@@ -63,6 +82,28 @@ export function GroupForm({
         <label className="text-sm text-zinc-400">
           Nama Korea
           <Input {...form.register("koreanName")} className="mt-2" />
+        </label>
+        <label className="text-sm text-zinc-400">
+          URL Foto Profil / Logo
+          <Input
+            {...form.register("profileImageUrl", {
+              setValueAs: (value) => (value === "" ? null : value),
+            })}
+            className="mt-2"
+            placeholder="https://.../logo.png"
+            type="url"
+          />
+        </label>
+        <label className="text-sm text-zinc-400">
+          URL Banner Foto
+          <Input
+            {...form.register("bannerImageUrl", {
+              setValueAs: (value) => (value === "" ? null : value),
+            })}
+            className="mt-2"
+            placeholder="https://..."
+            type="url"
+          />
         </label>
         <label className="text-sm text-zinc-400">
           Tipe
@@ -177,7 +218,6 @@ export function GroupForm({
         <Button disabled={pending} type="submit">
           {pending ? "Menyimpan..." : "Simpan group"}
         </Button>
-        {message ? <span className="text-sm text-zinc-400">{message}</span> : null}
       </div>
     </form>
   );

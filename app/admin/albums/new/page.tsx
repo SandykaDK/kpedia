@@ -1,7 +1,7 @@
 import { AlbumForm } from "@/components/admin/album-form";
-import { getAdminGroups, getAdminIdols } from "@/lib/queries/admin-queries";
+import { getAdminGroupOptions, getAdminIdolOptions } from "@/lib/queries/admin-queries";
 export default async function NewAlbumPage() {
-  const [groups, idols] = await Promise.all([getAdminGroups(), getAdminIdols()]);
+  const [groups, idols] = await Promise.all([getAdminGroupOptions(), getAdminIdolOptions()]);
   return (
     <main className="p-6 text-zinc-100 sm:p-10">
       <h1 className="text-3xl font-semibold">New album</h1>

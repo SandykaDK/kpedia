@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "react-toastify";
 import { addTimelineEvent } from "@/actions/timeline-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,6 @@ export function TimelineForm({
   entities: { id: string; name: string; type: "IDOL" | "GROUP" | "ALBUM" }[];
 }) {
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState("");
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -24,7 +24,8 @@ export function TimelineForm({
         eventDate: data.get("eventDate"),
         sourceUrl: data.get("sourceUrl") || null,
       });
-      setMessage(result.success ? "Event tersimpan." : result.error);
+      if (result.success) toast.success("Event timeline berhasil disimpan.");
+      else toast.error(result.error || "Gagal menyimpan event timeline.");
     });
   }
   return (
@@ -87,7 +88,6 @@ export function TimelineForm({
         <Button disabled={pending} type="submit">
           {pending ? "Menyimpan..." : "Simpan event"}
         </Button>
-        <span className="text-sm text-zinc-500">{message}</span>
       </div>
     </form>
   );

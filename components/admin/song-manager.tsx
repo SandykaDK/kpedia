@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "react-toastify";
 import { createSong } from "@/actions/discography-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ export function SongManager({
   idols: { id: string; stageName: string }[];
 }) {
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState("");
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -24,7 +24,8 @@ export function SongManager({
         isTitleTrack: data.get("isTitleTrack") === "on",
         credits: idolId ? [{ idolId, role: data.get("role") }] : [],
       });
-      setMessage(result.success ? "Lagu tersimpan." : result.error);
+      if (result.success) toast.success("Lagu berhasil disimpan.");
+      else toast.error(result.error || "Gagal menyimpan lagu.");
     });
   }
   return (
@@ -60,7 +61,6 @@ export function SongManager({
       <Button disabled={pending} type="submit">
         + Add song
       </Button>
-      <span className="basis-full text-xs text-zinc-500">{message}</span>
     </form>
   );
 }

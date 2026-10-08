@@ -1,14 +1,18 @@
 import { notFound } from "next/navigation";
 import { GroupForm } from "@/components/admin/group-form";
-import { getAdminAgencies, getAdminGroups, getAdminIdols } from "@/lib/queries/admin-queries";
+import {
+  getAdminAgencies,
+  getAdminGroupOptions,
+  getAdminIdolOptions,
+} from "@/lib/queries/admin-queries";
 import { prisma } from "@/lib/prisma";
 export default async function EditGroupPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [group, agencies, groups, idols] = await Promise.all([
     prisma.group.findUnique({ where: { id } }),
     getAdminAgencies(),
-    getAdminGroups(),
-    getAdminIdols(),
+    getAdminGroupOptions(),
+    getAdminIdolOptions(),
   ]);
   if (!group) notFound();
   return (

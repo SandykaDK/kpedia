@@ -147,6 +147,7 @@ model Group {
   agencyId        String?
   profileUrl      String?
   profileImageUrl String?
+  bannerImageUrl  String?
   parentGroupId   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -220,15 +221,16 @@ model IdolGroupMembership {
 }
 
 model Album {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  title       String
-  type        AlbumType
-  releaseDate DateTime?
-  groupId     String?
-  idolId      String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  type          AlbumType
+  releaseDate   DateTime?
+  coverImageUrl String?
+  groupId       String?
+  idolId        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
   idol  Idol?  @relation(fields: [idolId], references: [id], onDelete: SetNull)
@@ -240,7 +242,9 @@ model Song {
   albumId      String?
   title        String
   trackNumber  Int?
+  duration     Int?
   isTitleTrack Boolean  @default(false)
+  lyrics       String?  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

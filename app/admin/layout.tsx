@@ -14,9 +14,9 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   });
   if (!user || !canModerate(user)) redirect("/");
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 lg:flex-row">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-zinc-950 lg:flex-row">
       <AdminSidebar />
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="scrollbar-hidden min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }

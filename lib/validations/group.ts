@@ -21,6 +21,7 @@ export const createGroupSchema = z.object({
   agencyId: z.string().cuid("Agency ID tidak valid").optional().nullable(),
   profileUrl: optionalUrlSchema,
   profileImageUrl: optionalUrlSchema,
+  bannerImageUrl: optionalUrlSchema,
   generation: z.coerce.number().int().min(1).max(10).optional().nullable(),
   disbandDate: optionalDateSchema,
   parentGroupId: z.string().cuid().optional().nullable(),
