@@ -24,11 +24,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans"><div className="mx-auto w-full max-w-[1440px] px-5 pt-6 sm:px-8 lg:px-12 lg:pt-8"><SiteHeader /></div>{children}<ToastProvider /></body>
+    <html lang="id" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col font-sans">
+        <div className="mx-auto w-full max-w-[1440px] px-5 pt-6 sm:px-8 lg:px-12 lg:pt-8">
+          <SiteHeader />
+        </div>
+        {children}
+        <ToastProvider />
+      </body>
     </html>
   );
 }

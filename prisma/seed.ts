@@ -85,8 +85,10 @@ async function main() {
         debutDate: new Date("2014-08-01T00:00:00.000Z"),
         status: IdolStatus.ACTIVE,
         agencyId: agency.id,
-        profileImageUrl: null,
-        biography: "Seulgi adalah penyanyi dan performer Korea Selatan yang dikenal sebagai anggota Red Velvet.",
+        profileImageUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/d/db/Kang_Seulgi_LONGCHAMP_2024.jpg",
+        biography:
+          "Seulgi adalah penyanyi dan performer Korea Selatan yang dikenal sebagai anggota Red Velvet.",
         birthPlace: "Ansan, Gyeonggi-do, Korea Selatan",
         nationality: "Korea Selatan",
         generation: 3,
@@ -105,7 +107,8 @@ async function main() {
         status: IdolStatus.ACTIVE,
         agencyId: agency.id,
         profileImageUrl: null,
-        biography: "Wendy adalah penyanyi Korea Selatan dan anggota Red Velvet dengan karakter vokal yang kuat.",
+        biography:
+          "Wendy adalah penyanyi Korea Selatan dan anggota Red Velvet dengan karakter vokal yang kuat.",
         birthPlace: "Seongbuk-dong, Seoul, Korea Selatan",
         nationality: "Korea Selatan",
         generation: 3,
@@ -162,7 +165,8 @@ async function main() {
         entityId: group.id,
         category: "COMEBACK",
         title: "Feel My Rhythm comeback",
-        description: "Red Velvet merilis MV Feel My Rhythm sebagai title track dari The ReVe Festival 2022.",
+        description:
+          "Red Velvet merilis MV Feel My Rhythm sebagai title track dari The ReVe Festival 2022.",
         eventDate: new Date("2022-03-21T00:00:00.000Z"),
         sourceUrl: "https://youtu.be/R9At2ICm4LQ?si=Gi7GciMk7rnqWRjD",
       },

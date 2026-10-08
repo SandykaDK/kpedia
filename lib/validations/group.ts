@@ -9,12 +9,7 @@ const slugSchema = z
 
 const optionalDateSchema = z.coerce.date().optional().nullable();
 
-const optionalUrlSchema = z
-  .string()
-  .trim()
-  .url("URL tidak valid")
-  .optional()
-  .nullable();
+const optionalUrlSchema = z.string().trim().url("URL tidak valid").optional().nullable();
 
 export const createGroupSchema = z.object({
   slug: slugSchema,
@@ -31,10 +26,9 @@ export const createGroupSchema = z.object({
   parentGroupId: z.string().cuid().optional().nullable(),
 });
 
-export const updateGroupSchema = createGroupSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  "Minimal satu field harus diubah",
-);
+export const updateGroupSchema = createGroupSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, "Minimal satu field harus diubah");
 
 export type CreateGroupInput = z.input<typeof createGroupSchema>;
 export type UpdateGroupInput = z.input<typeof updateGroupSchema>;

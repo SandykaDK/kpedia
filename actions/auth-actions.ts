@@ -4,7 +4,10 @@ import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
 import type { ActionResponse } from "@/types/action";
 
-export async function loginAction(_previousState: ActionResponse<undefined>, formData: FormData): Promise<ActionResponse<undefined>> {
+export async function loginAction(
+  _previousState: ActionResponse<undefined>,
+  formData: FormData,
+): Promise<ActionResponse<undefined>> {
   const email = formData.get("email");
   const password = formData.get("password");
 
@@ -16,7 +19,7 @@ export async function loginAction(_previousState: ActionResponse<undefined>, for
     await signIn("credentials", {
       email: email.trim(),
       password,
-      redirectTo: "/dashboard/contributions",
+      redirectTo: "/",
     });
     return { success: true, data: undefined };
   } catch (error: unknown) {

@@ -9,12 +9,7 @@ const slugSchema = z
 
 const optionalDateSchema = z.coerce.date().optional().nullable();
 
-const optionalUrlSchema = z
-  .string()
-  .trim()
-  .url("URL tidak valid")
-  .optional()
-  .nullable();
+const optionalUrlSchema = z.string().trim().url("URL tidak valid").optional().nullable();
 
 export const createIdolSchema = z.object({
   slug: slugSchema,
@@ -34,10 +29,9 @@ export const createIdolSchema = z.object({
   generation: z.coerce.number().int().min(1).max(10).optional().nullable(),
 });
 
-export const updateIdolSchema = createIdolSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  "Minimal satu field harus diubah",
-);
+export const updateIdolSchema = createIdolSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, "Minimal satu field harus diubah");
 
 export type CreateIdolInput = z.input<typeof createIdolSchema>;
 export type UpdateIdolInput = z.input<typeof updateIdolSchema>;

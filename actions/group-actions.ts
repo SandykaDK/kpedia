@@ -8,9 +8,90 @@ import { prisma } from "@/lib/prisma";
 import { createGroupSchema, updateGroupSchema } from "@/lib/validations/group";
 import type { ActionResponse } from "@/types/action";
 
-async function editor() { const session = await auth(); if (!session?.user?.email) return null; const user = await prisma.user.findUnique({ where: { email: session.user.email } }); return user && canEditWiki(user) ? user : null; }
-function errorResponse(error: unknown): ActionResponse<never> { if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return { success: false, error: "Slug group sudah digunakan." }; console.error(error); return { success: false, error: "Operasi group gagal." }; }
-export async function createGroup(input: unknown): Promise<ActionResponse<{ id: string; slug: string }>> { const user = await editor(); if (!user) return { success: false, error: "Tidak memiliki izin." }; const parsed = createGroupSchema.safeParse(input); if (!parsed.success) return { success: false, error: "Data group tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }; try { const group = await prisma.group.create({ data: parsed.data }); revalidatePath("/admin/groups"); revalidatePath(`/groups/${group.slug}`); return { success: true, data: { id: group.id, slug: group.slug } }; } catch (error) { return errorResponse(error); } }
-export async function updateGroup(id: string, input: unknown): Promise<ActionResponse<{ id: string; slug: string }>> { const user = await editor(); if (!user) return { success: false, error: "Tidak memiliki izin." }; const parsed = updateGroupSchema.safeParse(input); if (!parsed.success) return { success: false, error: "Data group tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }; try { const group = await prisma.group.update({ where: { id }, data: parsed.data }); revalidatePath("/admin/groups"); revalidatePath(`/groups/${group.slug}`); return { success: true, data: { id: group.id, slug: group.slug } }; } catch (error) { return errorResponse(error); } }
-export async function deleteGroup(id: string): Promise<ActionResponse<{ id: string }>> { const user = await editor(); if (!user) return { success: false, error: "Tidak memiliki izin." }; try { await prisma.group.delete({ where: { id } }); revalidatePath("/admin/groups"); return { success: true, data: { id } }; } catch (error) { return errorResponse(error); } }
-export async function setGroupMembership(input: { groupId: string; idolId: string; position?: string; status: "ACTIVE" | "FORMER" | "HIATUS"; isLeader: boolean }): Promise<ActionResponse<{ id: string }>> { const user = await editor(); if (!user) return { success: false, error: "Tidak memiliki izin." }; try { const membership = await prisma.idolGroupMembership.upsert({ where: { idolId_groupId: { idolId: input.idolId, groupId: input.groupId } }, update: { position: input.position, status: input.status, isLeader: input.isLeader }, create: input }); revalidatePath("/admin/groups"); return { success: true, data: { id: membership.id } }; } catch (error) { return errorResponse(error); } }
+async function editor() {
+  const session = await auth();
+  if (!session?.user?.email) return null;
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  return user && canEditWiki(user) ? user : null;
+}
+function errorResponse(error: unknown): ActionResponse<never> {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")
+    return { success: false, error: "Slug group sudah digunakan." };
+  console.error(error);
+  return { success: false, error: "Operasi group gagal." };
+}
+export async function createGroup(
+  input: unknown,
+): Promise<ActionResponse<{ id: string; slug: string }>> {
+  const user = await editor();
+  if (!user) return { success: false, error: "Tidak memiliki izin." };
+  const parsed = createGroupSchema.safeParse(input);
+  if (!parsed.success)
+    return {
+      success: false,
+      error: "Data group tidak valid.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  try {
+    const group = await prisma.group.create({ data: parsed.data });
+    revalidatePath("/admin/groups");
+    revalidatePath(`/groups/${group.slug}`);
+    return { success: true, data: { id: group.id, slug: group.slug } };
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+export async function updateGroup(
+  id: string,
+  input: unknown,
+): Promise<ActionResponse<{ id: string; slug: string }>> {
+  const user = await editor();
+  if (!user) return { success: false, error: "Tidak memiliki izin." };
+  const parsed = updateGroupSchema.safeParse(input);
+  if (!parsed.success)
+    return {
+      success: false,
+      error: "Data group tidak valid.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  try {
+    const group = await prisma.group.update({ where: { id }, data: parsed.data });
+    revalidatePath("/admin/groups");
+    revalidatePath(`/groups/${group.slug}`);
+    return { success: true, data: { id: group.id, slug: group.slug } };
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+export async function deleteGroup(id: string): Promise<ActionResponse<{ id: string }>> {
+  const user = await editor();
+  if (!user) return { success: false, error: "Tidak memiliki izin." };
+  try {
+    await prisma.group.delete({ where: { id } });
+    revalidatePath("/admin/groups");
+    return { success: true, data: { id } };
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+export async function setGroupMembership(input: {
+  groupId: string;
+  idolId: string;
+  position?: string;
+  status: "ACTIVE" | "FORMER" | "HIATUS";
+  isLeader: boolean;
+}): Promise<ActionResponse<{ id: string }>> {
+  const user = await editor();
+  if (!user) return { success: false, error: "Tidak memiliki izin." };
+  try {
+    const membership = await prisma.idolGroupMembership.upsert({
+      where: { idolId_groupId: { idolId: input.idolId, groupId: input.groupId } },
+      update: { position: input.position, status: input.status, isLeader: input.isLeader },
+      create: input,
+    });
+    revalidatePath("/admin/groups");
+    return { success: true, data: { id: membership.id } };
+  } catch (error) {
+    return errorResponse(error);
+  }
+}

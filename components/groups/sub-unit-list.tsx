@@ -13,7 +13,9 @@ export function SubUnitList({ group }: { group: Group }) {
   return (
     <section className="space-y-4">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose-400">Related groups</p>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose-400">
+          Related groups
+        </p>
         <h2 className="mt-1 text-2xl font-semibold text-white">Sub-units</h2>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -25,7 +27,9 @@ export function SubUnitList({ group }: { group: Group }) {
           >
             <span>
               <span className="block font-medium text-white">{subUnit.name}</span>
-              <span className="mt-1 block text-sm text-zinc-500">{subUnit.koreanName ?? subUnit.agency?.name ?? "Sub-unit"}</span>
+              <span className="mt-1 block text-sm text-zinc-500">
+                {subUnit.koreanName ?? subUnit.agency?.name ?? "Sub-unit"}
+              </span>
             </span>
             <Badge variant={subUnit.isActive ? "success" : "muted"}>
               {subUnit.isActive ? "Aktif" : "Tidak aktif"}

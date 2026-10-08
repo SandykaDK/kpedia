@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { IdolGroupMemberships } from "@/components/idols/idol-group-memberships";
 import { IdolHero } from "@/components/idols/idol-hero";
 import { IdolOverview } from "@/components/idols/idol-overview";
-import { SubmitEditDialog } from "@/components/moderation/submit-edit-dialog";
 import { CareerTimeline } from "@/components/timeline/career-timeline";
 import { MediaEmbedGrid } from "@/components/media/media-embed-grid";
 import { getIdolBySlug } from "@/lib/queries/idol-queries";
@@ -60,9 +59,10 @@ export default async function IdolPage({ params }: IdolPageProps) {
   return (
     <main className="min-h-screen bg-zinc-950 px-5 py-8 text-zinc-100 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-5xl space-y-10">
-        <nav className="text-sm text-zinc-500" aria-label="Breadcrumb">KPedia / Idol / {idol.stageName}</nav>
+        <nav className="text-sm text-zinc-500" aria-label="Breadcrumb">
+          KPedia / Idol / {idol.stageName}
+        </nav>
         <IdolHero idol={idol} />
-        <div className="flex justify-end"><SubmitEditDialog targetId={idol.id} targetType="IDOL" /></div>
         <IdolOverview idol={idol} />
         <IdolGroupMemberships idol={idol} />
         <CareerTimeline events={timelineEvents} />

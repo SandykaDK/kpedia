@@ -18,10 +18,19 @@ export async function addTimelineEvent(input: unknown): Promise<ActionResponse<{
   const user = await editor();
   if (!user) return { success: false, error: "Anda tidak memiliki izin mengubah data wiki." };
   const parsed = addTimelineEventSchema.safeParse(input);
-  if (!parsed.success) return { success: false, error: "Data timeline tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors };
+  if (!parsed.success)
+    return {
+      success: false,
+      error: "Data timeline tidak valid.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
   try {
     const event = await prisma.timelineEvent.create({ data: parsed.data });
-    revalidatePath(parsed.data.entityType === "IDOL" ? `/idols/${parsed.data.entityId}` : `/groups/${parsed.data.entityId}`);
+    revalidatePath(
+      parsed.data.entityType === "IDOL"
+        ? `/idols/${parsed.data.entityId}`
+        : `/groups/${parsed.data.entityId}`,
+    );
     return { success: true, data: { id: event.id } };
   } catch (error: unknown) {
     console.error("addTimelineEvent failed", error);

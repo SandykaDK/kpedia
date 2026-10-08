@@ -26,12 +26,17 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     const role = typeof token?.role === "string" ? token.role : undefined;
     if (!token) return NextResponse.redirect(new URL("/login", request.url));
-    if (role !== "ADMIN" && role !== "MODERATOR") return NextResponse.redirect(new URL("/", request.url));
+    if (role !== "ADMIN" && role !== "MODERATOR")
+      return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

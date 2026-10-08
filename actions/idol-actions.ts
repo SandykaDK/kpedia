@@ -7,6 +7,10 @@ import { ZodError } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canEditWiki } from "@/lib/permissions";
+import {
+  resolveWikimediaImageUrl,
+  WikimediaImageResolutionError,
+} from "@/lib/utils/wikimedia-image-url";
 import { createIdolSchema, updateIdolSchema } from "@/lib/validations/idol";
 import type { ActionResponse } from "@/types/action";
 
@@ -35,7 +39,9 @@ async function getAuthorizedUser() {
   return user && canEditWiki(user) ? user : null;
 }
 
-export async function createIdol(input: unknown): Promise<ActionResponse<{ id: string; slug: string }>> {
+export async function createIdol(
+  input: unknown,
+): Promise<ActionResponse<{ id: string; slug: string }>> {
   const user = await getAuthorizedUser();
 
   if (!user) {
@@ -49,8 +55,12 @@ export async function createIdol(input: unknown): Promise<ActionResponse<{ id: s
   }
 
   try {
+    const data = {
+      ...parsed.data,
+      profileImageUrl: await resolveWikimediaImageUrl(parsed.data.profileImageUrl),
+    };
     const result = await prisma.$transaction(async (tx) => {
-      const idol = await tx.idol.create({ data: parsed.data });
+      const idol = await tx.idol.create({ data });
 
       await tx.revisionHistory.create({
         data: {
@@ -71,6 +81,10 @@ export async function createIdol(input: unknown): Promise<ActionResponse<{ id: s
 
     return { success: true, data: { id: result.id, slug: result.slug } };
   } catch (error: unknown) {
+    if (error instanceof WikimediaImageResolutionError) {
+      return { success: false, error: error.message };
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return { success: false, error: "Slug idol sudah digunakan." };
     }
@@ -80,7 +94,10 @@ export async function createIdol(input: unknown): Promise<ActionResponse<{ id: s
   }
 }
 
-export async function updateIdol(id: string, input: unknown): Promise<ActionResponse<{ id: string; slug: string }>> {
+export async function updateIdol(
+  id: string,
+  input: unknown,
+): Promise<ActionResponse<{ id: string; slug: string }>> {
   const user = await getAuthorizedUser();
 
   if (!user) {
@@ -94,6 +111,10 @@ export async function updateIdol(id: string, input: unknown): Promise<ActionResp
   }
 
   try {
+    const data = {
+      ...parsed.data,
+      profileImageUrl: await resolveWikimediaImageUrl(parsed.data.profileImageUrl),
+    };
     const result = await prisma.$transaction(async (tx) => {
       const current = await tx.idol.findUnique({ where: { id } });
 
@@ -103,7 +124,7 @@ export async function updateIdol(id: string, input: unknown): Promise<ActionResp
 
       const idol = await tx.idol.update({
         where: { id },
-        data: parsed.data,
+        data,
       });
 
       const latest = await tx.revisionHistory.findFirst({
@@ -131,6 +152,10 @@ export async function updateIdol(id: string, input: unknown): Promise<ActionResp
 
     return { success: true, data: { id: result.id, slug: result.slug } };
   } catch (error: unknown) {
+    if (error instanceof WikimediaImageResolutionError) {
+      return { success: false, error: error.message };
+    }
+
     if (error instanceof Error && error.message === "IDOL_NOT_FOUND") {
       return { success: false, error: "Idol tidak ditemukan." };
     }

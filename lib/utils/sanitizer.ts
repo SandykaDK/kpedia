@@ -11,5 +11,10 @@ export function escapeHtml(value: string): string {
 }
 
 export function sanitizeText(value: string, maxLength = 10_000): string {
-  return escapeHtml(value.replace(/<[^>]*>/g, "").trim().slice(0, maxLength));
+  return escapeHtml(
+    value
+      .replace(/<[^>]*>/g, "")
+      .trim()
+      .slice(0, maxLength),
+  );
 }

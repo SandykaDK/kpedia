@@ -86,27 +86,6 @@ enum RevisionAction {
   DELETE
 }
 
-enum EditTargetType {
-  IDOL
-  GROUP
-  AGENCY
-  ALBUM
-  SONG
-}
-
-enum EditOperation {
-  CREATE
-  UPDATE
-  DELETE
-}
-
-enum EditRequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-}
-
 enum TimelineEntityType {
   IDOL
   GROUP
@@ -138,31 +117,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  editRequests WikiEditRequest[] @relation("EditRequester")
-  reviewedEditRequests WikiEditRequest[] @relation("EditReviewer")
   changedRevisions RevisionHistory[] @relation("RevisionAuthor")
-}
-
-model WikiEditRequest {
-  id          String            @id @default(cuid())
-  targetType  EditTargetType
-  targetId    String
-  operation   EditOperation
-  payload     Json
-  reason      String            @db.Text
-  status      EditRequestStatus @default(PENDING)
-  requesterId String
-  reviewerId  String?
-  reviewNote  String?           @db.Text
-  createdAt   DateTime          @default(now())
-  reviewedAt  DateTime?
-
-  requester User  @relation("EditRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-  reviewer  User? @relation("EditReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  @@index([requesterId, createdAt])
-  @@index([status, createdAt])
-  @@index([targetType, targetId])
 }
 
 model Agency {
@@ -180,66 +135,66 @@ model Agency {
 }
 
 model Group {
-  id            String     @id @default(cuid())
-  slug          String     @unique
-  name          String
-  koreanName    String?
-  type          GroupType  @default(MAIN_GROUP)
-  generation    Int?
-  debutDate     DateTime?
-  disbandDate   DateTime?
-  isActive      Boolean    @default(true)
-  agencyId      String?
-  profileUrl    String?
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  name            String
+  koreanName      String?
+  type            GroupType @default(MAIN_GROUP)
+  generation      Int?
+  debutDate       DateTime?
+  disbandDate     DateTime?
+  isActive        Boolean   @default(true)
+  agencyId        String?
+  profileUrl      String?
   profileImageUrl String?
-  parentGroupId String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  parentGroupId   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  agency       Agency?              @relation(fields: [agencyId], references: [id], onDelete: SetNull)
-  parentGroup  Group?               @relation("GroupSubUnits", fields: [parentGroupId], references: [id], onDelete: SetNull)
-  subUnits     Group[]              @relation("GroupSubUnits")
-  memberships  IdolGroupMembership[]
-  albums       Album[]
+  agency      Agency?               @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  parentGroup Group?                @relation("GroupSubUnits", fields: [parentGroupId], references: [id], onDelete: SetNull)
+  subUnits    Group[]               @relation("GroupSubUnits")
+  memberships IdolGroupMembership[]
+  albums      Album[]
 }
 
 model Idol {
-  id          String     @id @default(cuid())
-  slug        String     @unique
-  stageName   String
-  legalName   String?
-  koreanName  String?
-  gender      Gender     @default(UNKNOWN)
-  birthDate   DateTime?
-  status      IdolStatus @default(ACTIVE)
-  debutDate   DateTime?
-  agencyId    String?
-  profileUrl  String?
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  stageName       String
+  legalName       String?
+  koreanName      String?
+  gender          Gender     @default(UNKNOWN)
+  birthDate       DateTime?
+  status          IdolStatus @default(ACTIVE)
+  debutDate       DateTime?
+  agencyId        String?
+  profileUrl      String?
   profileImageUrl String?
-  biography   String?    @db.Text
-  birthPlace  String?
-  nationality String?
-  generation  Int?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  biography       String?    @db.Text
+  birthPlace      String?
+  nationality     String?
+  generation      Int?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
-  agency       Agency?              @relation(fields: [agencyId], references: [id], onDelete: SetNull)
-  memberships  IdolGroupMembership[]
-  albums       Album[]
-  credits      Credit[]
+  agency      Agency?               @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  memberships IdolGroupMembership[]
+  albums      Album[]
+  credits     Credit[]
 }
 
 model RevisionHistory {
-  id          String             @id @default(cuid())
-  entityType  RevisionEntityType
-  entityId    String?
-  revisionNo  Int
-  action      RevisionAction
-  snapshot    Json
+  id               String             @id @default(cuid())
+  entityType       RevisionEntityType
+  entityId         String?
+  revisionNo       Int
+  action           RevisionAction
+  snapshot         Json
   previousSnapshot Json?
-  changeNote  String?
-  changedById String?
-  createdAt   DateTime           @default(now())
+  changeNote       String?
+  changedById      String?
+  createdAt        DateTime           @default(now())
 
   changedBy User? @relation("RevisionAuthor", fields: [changedById], references: [id], onDelete: SetNull)
 
@@ -275,8 +230,8 @@ model Album {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  group Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  idol  Idol?   @relation(fields: [idolId], references: [id], onDelete: SetNull)
+  group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  idol  Idol?  @relation(fields: [idolId], references: [id], onDelete: SetNull)
   songs Song[]
 }
 
@@ -322,7 +277,7 @@ model TimelineEvent {
 }
 
 model MediaEmbed {
-  id           String        @id @default(cuid())
+  id           String             @id @default(cuid())
   entityType   TimelineEntityType
   entityId     String
   provider     MediaProvider
@@ -330,8 +285,8 @@ model MediaEmbed {
   url          String
   title        String?
   thumbnailUrl String?
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime           @default(now())
 
-  @@index([entityType, entityId, provider])
   @@unique([provider, externalId, entityType, entityId])
+  @@index([entityType, entityId, provider])
 }

@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { GroupHero } from "@/components/groups/group-hero";
 import { GroupMembers } from "@/components/groups/group-members";
 import { SubUnitList } from "@/components/groups/sub-unit-list";
-import { SubmitEditDialog } from "@/components/moderation/submit-edit-dialog";
 import { CareerTimeline } from "@/components/timeline/career-timeline";
 import { MediaEmbedGrid } from "@/components/media/media-embed-grid";
 import { getGroupBySlug } from "@/lib/queries/group-queries";
@@ -17,7 +16,9 @@ type GroupPageProps = {
 
 function formatDate(date: Date | null) {
   return date
-    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(date)
+    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(
+        date,
+      )
     : "Belum tersedia";
 }
 
@@ -58,9 +59,10 @@ export default async function GroupPage({ params }: GroupPageProps) {
   return (
     <main className="min-h-screen bg-zinc-950 px-5 py-8 text-zinc-100 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-5xl space-y-10">
-        <nav className="text-sm text-zinc-500" aria-label="Breadcrumb">KPedia / Group / {group.name}</nav>
+        <nav className="text-sm text-zinc-500" aria-label="Breadcrumb">
+          KPedia / Group / {group.name}
+        </nav>
         <GroupHero group={group} />
-        <div className="flex justify-end"><SubmitEditDialog targetId={group.id} targetType="GROUP" /></div>
         <GroupMembers group={group} />
         <SubUnitList group={group} />
         <CareerTimeline events={timelineEvents} />
@@ -73,9 +75,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
           {group.albums.length ? (
             <div className="grid gap-4 sm:grid-cols-2">
               {group.albums.map((album) => (
-                <article className="rounded-xl border border-zinc-800 bg-zinc-900 p-5" key={album.id}>
+                <article
+                  className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+                  key={album.id}
+                >
                   <h3 className="font-medium text-white">{album.title}</h3>
-                  <p className="mt-1 text-sm text-zinc-400">{album.type} · {formatDate(album.releaseDate)}</p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    {album.type} · {formatDate(album.releaseDate)}
+                  </p>
                   <p className="mt-4 text-sm text-zinc-500">{album.songs.length} lagu</p>
                 </article>
               ))}

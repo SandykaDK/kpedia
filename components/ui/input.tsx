@@ -3,5 +3,13 @@ import type { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn("h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-rose-400", className)} {...props} />;
+  return (
+    <input
+      className={cn(
+        "h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-rose-400",
+        className,
+      )}
+      {...props}
+    />
+  );
 }

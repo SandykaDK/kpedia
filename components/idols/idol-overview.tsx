@@ -4,7 +4,9 @@ type Idol = NonNullable<Awaited<ReturnType<typeof getIdolBySlug>>>;
 
 function formatDate(date: Date | null) {
   return date
-    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(date)
+    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(
+        date,
+      )
     : "Belum tersedia";
 }
 

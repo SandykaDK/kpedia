@@ -14,10 +14,7 @@ function verifyPassword(password: string, storedHash: string): boolean {
   const actualHash = scryptSync(password, salt, 64);
   const expectedBuffer = Buffer.from(expectedHash, "hex");
 
-  return (
-    actualHash.length === expectedBuffer.length &&
-    timingSafeEqual(actualHash, expectedBuffer)
-  );
+  return actualHash.length === expectedBuffer.length && timingSafeEqual(actualHash, expectedBuffer);
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -37,7 +34,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user?.passwordHash || user.status !== "ACTIVE" || !verifyPassword(password, user.passwordHash)) {
+        if (
+          !user?.passwordHash ||
+          user.status !== "ACTIVE" ||
+          !verifyPassword(password, user.passwordHash)
+        ) {
           return null;
         }
 

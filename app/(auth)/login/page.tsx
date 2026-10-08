@@ -5,14 +5,14 @@ import { auth } from "@/auth";
 
 export const metadata = {
   title: "Login | KPedia",
-  description: "Masuk ke KPedia untuk mengelola kontribusi wiki.",
+  description: "Masuk ke KPedia.",
 };
 
 export default async function LoginPage() {
   const session = await auth();
 
   if (session?.user) {
-    redirect("/dashboard/contributions");
+    redirect("/");
   }
 
   return (
@@ -21,10 +21,14 @@ export default async function LoginPage() {
         <div className="mb-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose-400">KPedia</p>
           <h1 className="mt-3 text-3xl font-semibold text-white">Selamat datang kembali</h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">Masuk untuk melihat dan mengelola kontribusi wiki Anda.</p>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">
+            Masuk ke akun KPedia Anda.
+          </p>
         </div>
         <LoginForm />
-        <p className="mt-6 text-center text-xs text-zinc-600">Gunakan akun yang dibuat oleh seed database lokal.</p>
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          Gunakan akun yang dibuat oleh seed database lokal.
+        </p>
       </section>
     </main>
   );
